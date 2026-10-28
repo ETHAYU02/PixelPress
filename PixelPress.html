@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PixelPress — Image Resizer</title>
+<style>
+:root{--ink:#172033;--muted:#657087;--line:#e2e7ef;--bg:#f5f7fb;--blue:#3458eb;--blue2:#2443c7;--card:#fff}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font:15px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--ink)}
+header{background:#fff;border-bottom:1px solid var(--line);padding:18px 24px}.nav{max-width:1120px;margin:auto;display:flex;align-items:center;gap:12px}.logo{width:38px;height:38px;border-radius:12px;background:var(--blue);color:white;display:grid;place-items:center;font-weight:800;font-size:20px}.brand{font-weight:800;font-size:19px;letter-spacing:-.4px}.tag{color:var(--muted);font-size:12px;margin-left:auto}
+main{max-width:1120px;margin:34px auto;padding:0 20px}.intro{text-align:center;margin-bottom:28px}.intro h1{font-size:clamp(28px,4vw,40px);line-height:1.15;margin:0 0 10px;letter-spacing:-1.2px}.intro p{color:var(--muted);margin:0}.workspace{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:20px;align-items:start}.panel{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:22px;box-shadow:0 6px 24px #1b2b4d08}.upload{border:2px dashed #c8d2e5;border-radius:14px;padding:28px 16px;text-align:center;background:#fafbff;cursor:pointer;transition:.2s}.upload:hover,.upload.drag{border-color:var(--blue);background:#f3f5ff}.upload .symbol{font-size:34px;margin-bottom:5px}.upload strong{display:block;font-size:16px}.upload p{margin:5px 0 12px;color:var(--muted);font-size:13px}.btn{border:0;border-radius:10px;padding:11px 15px;background:var(--blue);color:#fff;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px}.btn:hover{background:var(--blue2)}.btn:disabled{opacity:.45;cursor:not-allowed}.btn.secondary{background:#edf0ff;color:#2e49c7}.btn.secondary:hover{background:#e0e6ff}.hidden{display:none!important}.fileinfo{display:flex;align-items:center;gap:12px;padding:12px;background:#f7f8fc;border-radius:12px;margin-top:14px}.fileicon{font-size:23px}.fileinfo .name{font-weight:700;overflow-wrap:anywhere}.sub{font-size:12px;color:var(--muted)}.section-title{font-size:14px;font-weight:800;margin:22px 0 12px}.fields{display:grid;grid-template-columns:1fr 1fr;gap:12px}.field label{display:block;font-size:12px;color:var(--muted);font-weight:700;margin-bottom:6px}.field input,.field select{width:100%;padding:10px 11px;border:1px solid #d8deea;border-radius:9px;background:white;color:var(--ink);font:inherit;outline:none}.field input:focus,.field select:focus{border-color:var(--blue);box-shadow:0 0 0 3px #3458eb18}.full{grid-column:1/-1}.checkrow{display:flex;align-items:center;gap:9px;font-size:13px;color:var(--muted);margin-top:12px}.checkrow input{accent-color:var(--blue)}.hint{font-size:12px;color:var(--muted);margin-top:8px}.actions{display:flex;gap:10px;margin-top:18px}.actions .btn{flex:1}.previewbox{background:#f6f8fc;border:1px solid var(--line);border-radius:13px;min-height:220px;display:grid;place-items:center;overflow:hidden;padding:12px}.previewbox img{max-width:100%;max-height:300px;object-fit:contain}.placeholder{text-align:center;color:#8b95a8;font-size:13px;padding:30px}.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.stat{background:#f7f8fc;border-radius:10px;padding:11px}.stat span{display:block;color:var(--muted);font-size:11px}.stat strong{font-size:15px}.status{margin-top:12px;padding:10px 12px;border-radius:10px;background:#f1f4fb;color:#536079;font-size:13px}.status.good{background:#eaf8ef;color:#176b38}.status.bad{background:#fff0ed;color:#a33220}.privacy{margin-top:16px;font-size:12px;color:var(--muted);display:flex;gap:7px}.footer{text-align:center;color:var(--muted);font-size:12px;margin:24px 0 40px}
+@media(max-width:820px){.workspace{grid-template-columns:1fr}.preview-panel{order:2}.settings-panel{order:1}.tag{display:none}}@media(max-width:480px){main{padding:0 12px;margin-top:24px}.panel{padding:16px}.fields{gap:10px}.actions{flex-direction:column}.nav{padding:0 2px}}
+</style>
+</head>
+<body>
+<header><div class="nav"><div class="logo">P</div><div class="brand">PixelPress</div><div class="tag">Resize • Compress • Set DPI</div></div></header>
+<main>
+  <div class="intro"><h1>Image Resizer</h1><p>Get the exact pixels, file size and DPI your form requires.</p></div>
+  <div class="workspace">
+    <section class="panel settings-panel">
+      <div id="dropzone" class="upload" tabindex="0" role="button" aria-label="Choose an image">
+        <div class="symbol">☁️</div><strong>Drop your image here</strong><p>JPG, PNG or WebP · Processed locally in your browser</p><button class="btn" type="button" id="chooseBtn">Choose image</button>
+      </div>
+      <input id="fileInput" type="file" accept="image/*" class="hidden">
+      <div id="fileinfo" class="fileinfo hidden"><div class="fileicon">🖼️</div><div style="min-width:0;flex:1"><div id="filename" class="name"></div><div id="originalMeta" class="sub"></div></div><button id="removeBtn" class="btn secondary" type="button">Remove</button></div>
+
+      <div class="section-title">1. Output dimensions</div>
+      <div class="fields">
+        <div class="field"><label for="width">Width (pixels)</label><input id="width" type="number" min="1" max="12000" value="170"></div>
+        <div class="field"><label for="height">Height (pixels)</label><input id="height" type="number" min="1" max="12000" value="132"></div>
+      </div>
+      <label class="checkrow"><input id="lockRatio" type="checkbox"> Keep original aspect ratio</label>
+
+      <div class="section-title">2. File size target</div>
+      <div class="fields">
+        <div class="field"><label for="sizeMode">Target mode</label><select id="sizeMode"><option value="range">Fit within KB range</option><option value="max">Maximum file size</option><option value="none">Best quality (no target)</option></select></div>
+        <div class="field"><label for="minKB">Minimum (KB)</label><input id="minKB" type="number" min="1" max="50000" value="10"></div>
+        <div class="field"><label for="maxKB">Maximum (KB)</label><input id="maxKB" type="number" min="1" max="50000" value="20"></div>
+      </div>
+      <div class="hint">JPEG is used for compact output. Very small targets may reduce image quality.</div>
+
+      <div class="section-title">3. DPI metadata</div>
+      <div class="fields">
+        <div class="field"><label for="dpi">DPI</label><select id="dpi"><option>96</option><option>150</option><option selected>200</option><option>300</option><option>600</option></select></div>
+        <div class="field"><label for="format">Output format</label><select id="format"><option value="image/jpeg">JPG (recommended)</option><option value="image/png">PNG (larger file)</option></select></div>
+      </div>
+      <div class="hint">DPI is written as image metadata. Pixel dimensions remain exactly as entered.</div>
+      <div class="actions"><button class="btn" id="resizeBtn" disabled>Resize image</button><button class="btn secondary" id="resetBtn" type="button">Reset settings</button></div>
+      <div id="status" class="status">Choose an image to begin.</div>
+      <div class="privacy"><span>🔒</span><span>Your image stays on this device. Nothing is uploaded to a server.</span></div>
+    </section>
+
+    <aside class="panel preview-panel">
+      <div class="section-title" style="margin-top:0">Preview</div>
+      <div class="previewbox" id="previewbox"><div class="placeholder">Your resized image preview will appear here.</div></div>
+      <div class="stats">
+        <div class="stat"><span>Dimensions</span><strong id="outDimensions">—</strong></div>
+        <div class="stat"><span>File size</span><strong id="outSize">—</strong></div>
+        <div class="stat"><span>DPI</span><strong id="outDpi">—</strong></div>
+        <div class="stat"><span>Format</span><strong id="outFormat">—</strong></div>
+      </div>
+      <button class="btn" id="downloadBtn" disabled style="width:100%;margin-top:16px">⬇ Download image</button>
+      <p class="hint">Check the final dimensions and KB size before submitting to a form.</p>
+    </aside>
+  </div>
+  <div class="footer">PixelPress · Free browser-based image tools</div>
+</main>
+<script>
+const $ = id => document.getElementById(id);
+let sourceImage = null, sourceUrl = null, outputUrl = null, outputBlob = null, originalFile = null, ratio = 1;
+const dropzone=$('dropzone'), fileInput=$('fileInput'), resizeBtn=$('resizeBtn'), statusBox=$('status');
+function setStatus(msg,type=''){statusBox.textContent=msg;statusBox.className='status'+(type?' '+type:'')}
+function fmtBytes(bytes){return bytes<1024?(bytes+' B'):(bytes/1024).toFixed(2)+' KB'}
+function loadFile(file){
+ if(!file)return;
+ if(!file.type.startsWith('image/')){setStatus('Please choose a valid image file.','bad');return}
+ if(sourceUrl)URL.revokeObjectURL(sourceUrl);
+ sourceUrl=URL.createObjectURL(file);originalFile=file;
+ const img=new Image();
+ img.onload=()=>{
+  sourceImage=img;ratio=img.naturalWidth/img.naturalHeight;
+  $('filename').textContent=file.name;$('originalMeta').textContent=`${img.naturalWidth} × ${img.naturalHeight} px · ${fmtBytes(file.size)}`;
+  $('fileinfo').classList.remove('hidden');resizeBtn.disabled=false;
+  $('width').value=img.naturalWidth;$('height').value=img.naturalHeight;
+  $('previewbox').innerHTML='';const preview=new Image();preview.src=sourceUrl;preview.style.maxWidth='100%';preview.style.maxHeight='300px';preview.style.objectFit='contain';$('previewbox').appendChild(preview);
+  setStatus('Image loaded. Choose your output settings and resize.');clearOutput();
+ };
+ img.onerror=()=>setStatus('Could not open this image. Try another file.','bad');
+ img.src=sourceUrl;
+}
+function clearOutput(){
+ if(outputUrl)URL.revokeObjectURL(outputUrl);outputUrl=null;outputBlob=null;
+ $('downloadBtn').disabled=true;$('outDimensions').textContent='—';$('outSize').textContent='—';$('outDpi').textContent='—';$('outFormat').textContent='—';
+}
+$('chooseBtn').addEventListener('click',e=>{e.stopPropagation();fileInput.click()});
+dropzone.addEventListener('click',()=>fileInput.click());
+dropzone.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();fileInput.click()}});
+fileInput.addEventListener('change',e=>loadFile(e.target.files[0]));
+$('removeBtn').addEventListener('click',()=>{sourceImage=null;originalFile=null;fileInput.value='';$('fileinfo').classList.add('hidden');$('previewbox').innerHTML='<div class="placeholder">Your resized image preview will appear here.</div>';clearOutput();resizeBtn.disabled=true;setStatus('Choose an image to begin.')});
+dropzone.addEventListener('dragover',e=>{e.preventDefault();dropzone.classList.add('drag')});
+dropzone.addEventListener('dragleave',()=>dropzone.classList.remove('drag'));
+dropzone.addEventListener('drop',e=>{e.preventDefault();dropzone.classList.remove('drag');loadFile(e.dataTransfer.files[0])});
+$('width').addEventListener('input',()=>{if($('lockRatio').checked&&sourceImage){$('height').value=Math.max(1,Math.round(Number($('width').value)/ratio))}});
+$('height').addEventListener('input',()=>{if($('lockRatio').checked&&sourceImage){$('width').value=Math.max(1,Math.round(Number($('height').value)*ratio))}});
+$('lockRatio').addEventListener('change',()=>{if($('lockRatio').checked&&sourceImage){$('height').value=Math.max(1,Math.round(Number($('width').value)/ratio))}});
+$('sizeMode').addEventListener('change',()=>{const mode=$('sizeMode').value; $('minKB').disabled=mode!=='range';$('maxKB').disabled=mode==='none';});
+$('resetBtn').addEventListener('click',()=>{ $('width').value=sourceImage?sourceImage.naturalWidth:170;$('height').value=sourceImage?sourceImage.naturalHeight:132;$('lockRatio').checked=false;$('sizeMode').value='range';$('minKB').value=10;$('maxKB').value=20;$('dpi').value='200';$('format').value='image/jpeg';$('minKB').disabled=false;$('maxKB').disabled=false;clearOutput();setStatus(sourceImage?'Settings reset. Ready to resize.':'Choose an image to begin.')});
+
+// For JPEGs, update the JFIF density fields to DPI units (dots per inch).
+async function setJpegDpi(blob,dpi){
+ const buf=await blob.arrayBuffer(),u=new Uint8Array(buf);
+ if(u.length<20||u[0]!==0xFF||u[1]!==0xD8)return blob;
+ // JFIF APP0 segment is normally immediately after SOI.
+ if(u[2]===0xFF&&u[3]===0xE0&&u[6]===0x4A&&u[7]===0x46&&u[8]===0x49&&u[9]===0x46&&u[10]===0){
+  u[13]=1;u[14]=(dpi>>8)&255;u[15]=dpi&255;u[16]=(dpi>>8)&255;u[17]=dpi&255;
+  return new Blob([u],{type:'image/jpeg'});
+ }
+ return blob;
+}
+function canvasBlob(canvas,type,quality){return new Promise((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(new Error('Image export failed.')) ,type,quality))}
+async function makeOutput(canvas,type,dpi,quality){let blob=await canvasBlob(canvas,type,quality);if(type==='image/jpeg')blob=await setJpegDpi(blob,dpi);return blob}
+resizeBtn.addEventListener('click',async()=>{
+ if(!sourceImage)return;
+ const w=Number($('width').value),h=Number($('height').value),dpi=Number($('dpi').value),type=$('format').value,mode=$('sizeMode').value;
+ if(!Number.isInteger(w)||!Number.isInteger(h)||w<1||h<1||w>12000||h>12000){setStatus('Enter width and height from 1 to 12000 pixels.','bad');return}
+ const minKB=Number($('minKB').value),maxKB=Number($('maxKB').value);
+ if(mode==='range'&&(!minKB||!maxKB||minKB<1||maxKB<minKB)){setStatus('Enter a valid KB range; maximum must be at least minimum.','bad');return}
+ if(mode==='max'&&(!maxKB||maxKB<1)){setStatus('Enter a valid maximum KB size.','bad');return}
+ resizeBtn.disabled=true;resizeBtn.textContent='Processing…';setStatus('Resizing and optimizing image…');
+ try{
+  const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
+  const ctx=canvas.getContext('2d',{alpha:false});
+  ctx.fillStyle='#ffffff';ctx.fillRect(0,0,w,h);ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='high';
+  ctx.drawImage(sourceImage,0,0,w,h);
+  let blob,quality=0.92;
+  if(type==='image/jpeg'&&mode!=='none'){
+   // Binary search for the highest quality that meets the maximum target.
+   const maxBytes=(mode==='range'?maxKB:maxKB)*1024;
+   let lo=0.08,hi=0.96,best=null;
+   for(let i=0;i<9;i++){
+    quality=(lo+hi)/2;let candidate=await makeOutput(canvas,type,dpi,quality);
+    if(candidate.size<=maxBytes){best=candidate;lo=quality}else{hi=quality}
+   }
+   blob=best||await makeOutput(canvas,type,dpi,0.08);
+  }else{blob=await makeOutput(canvas,type,dpi,quality)}
+  if(outputUrl)URL.revokeObjectURL(outputUrl);outputBlob=blob;outputUrl=URL.createObjectURL(blob);
+  const out=new Image();out.onload=()=>{ $('previewbox').innerHTML='';out.style.maxWidth='100%';out.style.maxHeight='300px';out.style.objectFit='contain';$('previewbox').appendChild(out)};out.src=outputUrl;
+  $('outDimensions').textContent=`${w} × ${h} px`;$('outSize').textContent=fmtBytes(blob.size);$('outDpi').textContent=`${dpi} DPI`;$('outFormat').textContent=type==='image/jpeg'?'JPG':'PNG';$('downloadBtn').disabled=false;
+  const kb=blob.size/1024;
+  if(mode==='range'&&(kb<minKB||kb>maxKB)){
+   setStatus(`Done, but output is ${kb.toFixed(2)} KB, outside your ${minKB}–${maxKB} KB range. Try smaller dimensions or JPG format.`, 'bad');
+  }else if(mode!=='none'&&kb>maxKB){
+   setStatus(`Could not fit below ${maxKB} KB at these dimensions. Try smaller dimensions or JPG format.`, 'bad');
+  }else if(type==='image/png'){
+   setStatus('PNG created. PNG compression is lossless, so the target KB range may not be achievable.','good');
+  }else{setStatus(`Success! Output is ${kb.toFixed(2)} KB at ${w} × ${h} px and ${dpi} DPI.`, 'good')}
+ }catch(err){setStatus('Could not process this image: '+err.message,'bad')}
+ finally{resizeBtn.disabled=false;resizeBtn.textContent='Resize image'}
+});
+$('downloadBtn').addEventListener('click',()=>{
+ if(!outputBlob||!outputUrl)return;
+ const a=document.createElement('a');a.href=outputUrl;a.download=`${(originalFile?.name||'image').replace(/\.[^.]+$/,'')}-${$('width').value}x${$('height').value}.${$('format').value==='image/png'?'png':'jpg'}`;
+ document.body.appendChild(a);a.click();a.remove();
+});
+</script>
+</body>
+</html>
